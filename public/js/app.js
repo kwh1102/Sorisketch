@@ -452,6 +452,7 @@ function playScene(scene) {
   $('#scene-title').textContent = scene.title;
   S.stage.render(scene.stage);
   audio.sfx('page');
+  if (scene.chang) voiceFor(scene, scene.chang.jangdan)?.catch(() => {});
   runAniri(scene, 0);
 }
 
@@ -509,8 +510,9 @@ function runAniri(scene, i) {
 }
 
 // 2) 창
-// 기본: 장면의 장단과 같은 장단의 실제 판소리 녹음을 듣는다(같은 작품의 녹음을 먼저 고름).
-// 「새 사설을 북 장단에 얹어 보기」: 실제 소리북 장단 위로 이 장면의 새 사설 자막이 장단에 맞춰 흐른다.
+// 기본(목소리 합성이 켜져 있을 때): 이 장면의 새 사설을 AI 목소리가 부르고, 뒤에 고수의 실제 소리북 장단이 깔린다.
+// 「같은 장단의 실제 판소리」: 같은 장단의 실제 판소리 녹음(원작 사설)을 비교해 들어 본다.
+// 목소리를 쓸 수 없으면 실제 판소리 녹음이 기본이고, 새 사설은 소리북 장단 위에 자막으로 흘려 본다.
 function pickTrack(jangdan, work) {
   const all = SORI_TRACKS.filter((t) => t.jangdan === jangdan);
   const fresh = all.filter((t) => !S.usedTracks.has(t.file));
@@ -522,6 +524,24 @@ function pickTrack(jangdan, work) {
   return t;
 }
 
+// 새 사설 목소리를 서버에서 받아 둔다(장면이 시작될 때 미리 요청 → 창에 닿을 때쯤 준비됨)
+function voiceFor(scene, jangdan) {
+  if (!S.voice || !scene.chang) return null;
+  scene.voices ||= {};
+  scene.voices[jangdan] ||= fetch('/api/voice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lines: scene.chang.lines, jangdan, jo: scene.chang.jo, singer: scene.chang.singer }),
+  })
+    .then((r) => {
+      if (!r.ok) throw new Error(`voice ${r.status}`);
+      return r.arrayBuffer();
+    })
+    .then((ab) => audio.decode(ab));
+  scene.voices[jangdan].catch(() => delete scene.voices[jangdan]);
+  return scene.voices[jangdan];
+}
+
 function runChang(scene, jangdanOverride = null) {
   const panel = $('#panel');
   const c = scene.chang;
@@ -531,29 +551,27 @@ function runChang(scene, jangdanOverride = null) {
   const guided = prefs.guide && (S.stats.changsHeard < 2 || jangdanOverride);
   scene.tracks ||= {};
   const track = (scene.tracks[jangdan] ||= pickTrack(jangdan, S.work));
+  let mode = S.voice ? 'voice' : track ? 'sori' : 'drum';
+  const singerName = esc(speakerName(scene, c.singer));
+
   panel.innerHTML = `<div class="chang">
     <div class="part-label">${chip('창', 'red')} <span>장단에 얹어 노래하는 부분</span></div>
-    ${track ? `<div class="now-playing">
-      <p class="np-head">🎙 지금 들리는 실제 판소리</p>
-      <p class="np-title"><b>${WORKS[track.work].title} 「${esc(track.title)}」</b> · 창 ${esc(track.singer)} · ${J.name}</p>
-      <div class="np-bar"><i></i></div>
-      <p class="credit">원작의 사설로 부른 녹음이에요. 아래는 이 장면을 위해 새로 쓴 사설 — 같은 ${J.name} 장단에 얹어 부른다고 상상하며 들어 보세요. · ${audioCredit()}</p>
-    </div>` : ''}
+    <div class="now-playing"><p class="np-head"></p><p class="np-title"></p><div class="np-bar"><i></i></div><p class="credit np-note"></p></div>
     <div class="chang-main">
       <div class="wheel-box">${wheelSVG(jangdan, 120)}<p class="jd-label"><b>${J.name}</b> ${J.beatsLabel}<br>${J.tempoWord}</p></div>
-      <div class="lyrics static">
-        <p class="lyrics-head">이 장면의 새 사설 <small>(창작 · ${esc(speakerName(scene, c.singer))}의 소리)</small></p>
+      <div class="lyrics">
+        <p class="lyrics-head">이 장면의 새 사설 <small>(창작 · ${singerName}의 소리)</small></p>
         ${c.lines.map((l, li) => `<p class="lyric" data-line="${li}">${[...l].map((ch) => (ch === ' ' ? ' ' : `<span>${esc(ch)}</span>`)).join('')}</p>`).join('')}
       </div>
     </div>
     ${chuimsaeBar()}
     <p class="feedback" id="chang-fb">${guided ? '소리가 한 대목 맺히는 자리에 추임새 버튼이 반짝여요.' : '이번엔 안내 없이! 소리가 맺히는 자리에 추임새를 넣어 보세요.'}</p>
     ${jangdanOverride
-      ? `<div class="why compare-q"><b>비교 감상</b> 이번엔 <b class="plain">${J.name}</b>(${J.tempoWord})의 실제 소리예요. 원래의 ${JANGDAN[c.jangdan].name}과 비교하면 이 장면의 느낌이 어떻게 달라질까요?</div>`
+      ? `<div class="why compare-q"><b>비교 감상</b> 이번엔 같은 사설을 <b class="plain">${J.name}</b>(${J.tempoWord})로 들어 봐요. 원래의 ${JANGDAN[c.jangdan].name}과 비교하면 이 장면의 느낌이 어떻게 달라지나요?</div>`
       : `<div class="why ${isAI ? 'ai' : ''}"><b>${isAI ? 'AI 창작 해석' : '연출 노트'}</b> ${esc(c.why || '')}</div>`}
     <div class="chang-actions">
-      <button class="btn" id="replay">▶ 실제 소리 다시 듣기</button>
-      <button class="btn" id="on-drum">🥁 새 사설을 북 장단에 얹어 보기</button>
+      <button class="btn" id="replay">▶ 다시 듣기</button>
+      <button class="btn" id="switch"></button>
       ${scene.compareJangdan && !jangdanOverride ? `<button class="btn" id="compare">${JANGDAN[scene.compareJangdan].name}로 바꿔 듣기</button>` : ''}
       ${jangdanOverride ? `<button class="btn" id="back-orig">원래 장단(${JANGDAN[c.jangdan].name})으로</button>` : ''}
       <button class="btn primary" id="chang-next">계속 ▸</button>
@@ -567,10 +585,27 @@ function runChang(scene, jangdanOverride = null) {
   const fb = $('#chang-fb');
   const lyrics = $('.lyrics', panel);
   const progress = $('.np-bar i', panel);
+  const switchBtn = $('#switch', panel);
   const tempo = J.bpm > 200 ? 'fast' : J.bpm < 80 ? 'slow' : 'mid';
   let windows = [];
   let hintTimers = [];
 
+  const setLabels = () => {
+    const credit = audioCredit();
+    const np = {
+      voice: ['🎙 새 사설을 부르는 AI 목소리 + 고수의 실제 소리북', `<b>${singerName}</b>의 소리 · ${J.name}`,
+        `목소리는 OpenAI 음성 합성(실제 소리꾼의 가창 아님), 북은 실제 소리북 녹음 · ${credit}`],
+      sori: ['🎧 같은 장단의 실제 판소리', track ? `<b>${WORKS[track.work].title} 「${esc(track.title)}」</b> · 창 ${esc(track.singer)} · ${J.name}` : '',
+        `원작의 사설로 부른 녹음이에요. 같은 ${J.name} 장단이 실제 소리꾼의 목에서 어떻게 들리는지 비교해 보세요. · ${credit}`],
+      drum: ['🥁 고수의 실제 소리북 + 새 사설 자막', `${J.name} 장단에 맞춰 새 사설을 따라 읽어 보세요`, `소리북 녹음 · ${credit}`],
+    }[mode];
+    $('.np-head', panel).textContent = np[0];
+    $('.np-title', panel).innerHTML = np[1];
+    $('.np-note', panel).innerHTML = np[2];
+    lyrics.classList.toggle('static', mode === 'sori');
+    switchBtn.hidden = !track && mode !== 'sori';
+    switchBtn.textContent = mode === 'sori' ? (S.voice ? '🎙 새 사설 노래로 돌아가기' : '🥁 새 사설을 북 장단에 얹어 보기') : '🎧 같은 장단의 실제 판소리 듣기';
+  };
   const clearHints = () => {
     hintTimers.forEach(clearTimeout);
     hintTimers = [];
@@ -592,70 +627,72 @@ function runChang(scene, jangdanOverride = null) {
     $('#chang-next')?.classList.add('pulse');
     S.stats.changsHeard += 1;
   };
-  const resetLyrics = () => {
-    $$('.lyric span.on', panel).forEach((s) => s.classList.remove('on'));
-    $$('.lyric.sung, .lyric.now', panel).forEach((s) => s.classList.remove('sung', 'now'));
-  };
-
-  // 실제 판소리 녹음
-  const playSori = async () => {
+  const stopped = () => {
     clearHints();
-    lyrics.classList.add('static');
+    S.stage.setSinging(false);
+  };
+  const resetLyrics = () => {
+    $$('.lyric span.on', panel).forEach((el) => el.classList.remove('on'));
+    $$('.lyric.sung, .lyric.now', panel).forEach((el) => el.classList.remove('sung', 'now'));
+    progress.style.width = '0';
+  };
+  const karaoke = (total) => ({
+    step: (e) => {
+      lightWheel(wheel, e.step);
+      S.stage.beat(e.stroke);
+    },
+    lineStart: (e) => $$('.lyric', panel).forEach((p) => p.classList.toggle('now', +p.dataset.line === e.line)),
+    syllable: (e) => {
+      $(`.lyric[data-line="${e.line}"]`, panel)?.querySelectorAll('span')[e.index]?.classList.add('on');
+      progress.style.width = `${Math.min(100, ((e.line + 1) / total) * 100)}%`;
+    },
+    lineEnd: (e) => $(`.lyric[data-line="${e.line}"]`, panel)?.classList.add('sung'),
+    end: finished,
+    stopped,
+  });
+
+  const play = async () => {
+    clearHints();
+    audio.stop();
     resetLyrics();
-    if (!track) return playDrum();
+    setLabels();
     S.stage.setSinging(true, c.singer === 'narrator' ? null : c.singer, tempo);
     try {
-      const res = await audio.playTrack(track.file, {
-        progress: (e) => (progress.style.width = `${e.ratio * 100}%`),
-        end: finished,
-        stopped: () => {
-          clearHints();
-          S.stage.setSinging(false);
-        },
-      });
-      windows = res?.windows || [];
+      let res;
+      if (mode === 'sori') {
+        res = await audio.playTrack(track.file, { progress: (e) => (progress.style.width = `${e.ratio * 100}%`), end: finished, stopped });
+      } else {
+        let voice = null;
+        if (mode === 'voice') {
+          fb.textContent = '목소리를 준비하는 중…';
+          voice = await voiceFor(scene, jangdan);
+          fb.textContent = guided ? '소리가 한 대목 맺히는 자리에 추임새 버튼이 반짝여요.' : '소리가 맺히는 자리에 추임새를 넣어 보세요.';
+        }
+        res = await audio.playChang({ lines: c.lines, jangdan, voice }, karaoke(c.lines.length));
+      }
+      if (!res) {
+        fb.textContent = '이 기기에서는 소리를 재생할 수 없어요. 사설을 읽으며 장단을 상상해 보세요.';
+        lyrics.classList.add('static');
+        return;
+      }
+      windows = res.windows;
       scheduleHints();
     } catch {
-      fb.textContent = '녹음을 불러오지 못해 북 장단으로 들려드려요.';
-      playDrum();
+      // 목소리나 녹음을 불러오지 못하면 한 단계 낮춰서
+      mode = mode === 'voice' && track ? 'sori' : 'drum';
+      fb.textContent = '소리를 불러오지 못해 다른 방식으로 들려드려요.';
+      play();
     }
-  };
-
-  // 새 사설 + 실제 소리북 장단
-  const playDrum = async () => {
-    clearHints();
-    lyrics.classList.remove('static');
-    resetLyrics();
-    if (progress) progress.style.width = '0';
-    S.stage.setSinging(true, c.singer === 'narrator' ? null : c.singer, tempo);
-    const res = await audio.playChang({ lines: c.lines, jangdan }, {
-      step: (e) => {
-        lightWheel(wheel, e.step);
-        S.stage.beat(e.stroke);
-      },
-      lineStart: (e) => $$('.lyric', panel).forEach((p) => p.classList.toggle('now', +p.dataset.line === e.line)),
-      syllable: (e) => $(`.lyric[data-line="${e.line}"]`, panel)?.querySelectorAll('span')[e.index]?.classList.add('on'),
-      lineEnd: (e) => $(`.lyric[data-line="${e.line}"]`, panel)?.classList.add('sung'),
-      end: finished,
-      stopped: () => {
-        clearHints();
-        S.stage.setSinging(false);
-      },
-    });
-    if (!res) {
-      fb.textContent = '이 기기에서는 소리를 재생할 수 없어요. 사설을 읽으며 장단을 상상해 보세요.';
-      lyrics.classList.add('static');
-      return;
-    }
-    windows = res.windows;
-    scheduleHints();
   };
 
   bindChuimsae(bar, () => windows, (good) => {
     fb.textContent = good ? '좋다! 소리가 맺히는 자리에 꼭 맞았어요.' : '소리를 가리지 않게, 한 대목이 맺히는 자리를 노려 보세요.';
   });
-  $('#replay').onclick = playSori;
-  $('#on-drum').onclick = playDrum;
+  $('#replay').onclick = play;
+  switchBtn.onclick = () => {
+    mode = mode === 'sori' ? (S.voice ? 'voice' : 'drum') : 'sori';
+    play();
+  };
   $('#compare')?.addEventListener('click', () => runChang(scene, scene.compareJangdan));
   $('#back-orig')?.addEventListener('click', () => runChang(scene));
   $('#chang-next').onclick = () => {
@@ -664,7 +701,7 @@ function runChang(scene, jangdanOverride = null) {
     S.stage.setSinging(false);
     runLearn(scene);
   };
-  playSori();
+  play();
 }
 
 // 3) 해설
@@ -793,7 +830,7 @@ function about() {
       ${SORI_TRACKS.filter((t) => !Object.values(PASSAGES).some((p) => p.audio === t.file)).map((t) => `<li>${WORKS[t.work].title} 「${esc(t.title)}」(${JANGDAN[t.jangdan].name}) — 창 ${esc(t.singer)}</li>`).join('')}
       <li>판소리 소리북 장단(진양·중모리·중중모리·자진모리·휘모리·엇모리)</li></ul></article>
     <article class="card"><h3>AI 활용 범위</h3>
-      <p>${S.provider === 'anthropic' ? 'Anthropic의 Claude' : 'OpenAI의 GPT'}${S.model ? `(${esc(S.model)})` : ''}가 다음 장면의 사건·대사·창작 사설·무대 구성(배경·인물·표정)·장단 선택과 그 이유를 만듭니다. 선택 이력과 인물 관계 기록을 함께 보내 앞뒤가 맞게 이어지도록 했어요. AI 연결이 없거나 실패하면 미리 쓴 각본으로 진행됩니다. API 키는 서버에만 있고 브라우저로 전송되지 않아요.</p></article>
+      <p>${S.provider === 'anthropic' ? 'Anthropic의 Claude' : 'OpenAI의 GPT'}${S.model ? `(${esc(S.model)})` : ''}가 다음 장면의 사건·대사·창작 사설·무대 구성(배경·인물·표정)·장단 선택과 그 이유를 만들고, 창 장면의 새 사설은 OpenAI 음성 합성 목소리로 부릅니다(실제 소리꾼의 가창이 아님). 선택 이력과 인물 관계 기록을 함께 보내 앞뒤가 맞게 이어지도록 했어요. AI 연결이 없거나 실패하면 미리 쓴 각본으로 진행됩니다. API 키는 서버에만 있고 브라우저로 전송되지 않아요.</p></article>
     <article class="card"><h3>참고 자료</h3>
       <ul>${SOURCES.map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></li>`).join('')}</ul>
       <p class="muted">장단의 박 구성과 대목의 장단은 판본(바디)과 소리꾼에 따라 다르게 부르기도 합니다. 체험용 북 패턴은 단순화한 것입니다.</p></article>
@@ -907,6 +944,7 @@ async function init() {
     S.model = st.model || '';
     S.lan = st.lan || [];
     S.provider = st.provider || '';
+    S.voice = !!st.voice;
   } catch {
     S.ai = false; // 정적 호스팅만 된 경우 → 각본 모드
   }
@@ -914,5 +952,8 @@ async function init() {
   else if (location.hash === '#about') about();
   else home();
 }
+
+// 개발용: 주소에 ?debug를 붙이면 콘솔에서 상태를 볼 수 있다
+if (new URLSearchParams(location.search).has('debug')) window.__sori = { audio, S };
 
 init();

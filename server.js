@@ -14,7 +14,7 @@ try {
   // .env가 없으면 환경 변수만 사용 (AI 없이도 각본 모드로 동작)
 }
 
-const { statusHandler, storyHandler } = await import('./lib/handlers.js');
+const { statusHandler, storyHandler, voiceHandler } = await import('./lib/handlers.js');
 
 const PUBLIC = path.join(here, 'public');
 const PORT = Number(process.env.PORT || 3000);
@@ -48,6 +48,7 @@ const server = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://x');
   if (pathname === '/api/status') return statusHandler(req, res);
   if (pathname === '/api/story') return storyHandler(req, res);
+  if (pathname === '/api/voice') return voiceHandler(req, res);
   return serveStatic(req, res);
 });
 

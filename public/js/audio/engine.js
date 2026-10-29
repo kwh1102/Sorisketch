@@ -77,6 +77,12 @@ export class SoriAudio {
     return this.buffers.get(file);
   }
 
+  // 서버에서 받은 음성(mp3 바이트)을 재생할 수 있는 버퍼로
+  decode(arrayBuffer) {
+    this.ensure();
+    return new Promise((ok, no) => this.ctx.decodeAudioData(arrayBuffer, ok, no));
+  }
+
   // 미리 받아 두기(장면이 시작되기 전에)
   preload(files) {
     if (!this.ensure()) return;
@@ -93,8 +99,8 @@ export class SoriAudio {
 
   stop() {
     if (!this.current) return;
-    const { bus, raf, audioEl } = this.current;
-    cancelAnimationFrame(raf);
+    const { bus, timer, audioEl } = this.current;
+    clearInterval(timer);
     if (bus) {
       const t = this.ctx.currentTime;
       bus.gain.cancelScheduledValues(t);
@@ -108,26 +114,26 @@ export class SoriAudio {
     if (done) done();
   }
 
-  // 이벤트 목록을 화면 시간과 맞춰 돌린다
+  // 이벤트 목록을 소리 시간과 맞춰 돌린다.
+  // 화면이 잠시 그려지지 않아도(다른 창에 가려짐 등) 멈추지 않도록 requestAnimationFrame 대신 짧은 타이머를 쓴다.
   runEvents(events, handlers, endTime) {
     events.sort((a, b) => a.time - b.time);
     let i = 0;
     const cur = this.current;
     const tick = () => {
-      if (this.current !== cur) return;
+      if (this.current !== cur) return clearInterval(cur.timer);
       const now = this.ctx.currentTime;
       while (i < events.length && events[i].time <= now) {
         const e = events[i++];
         handlers[e.type]?.(e);
       }
       if (now >= endTime) {
+        clearInterval(cur.timer);
         this.current = null;
         handlers.end?.();
-        return;
       }
-      cur.raf = requestAnimationFrame(tick);
     };
-    cur.raf = requestAnimationFrame(tick);
+    cur.timer = setInterval(tick, 25);
   }
 
   play(buffer, t, bus, gain = 1, offset = 0) {
@@ -164,8 +170,9 @@ export class SoriAudio {
 
   // ---------- 북 장단 위에 새 사설 얹기 ----------
   // 실제 소리북 한 바퀴(drum)를 반복하고, 줄마다 정해진 박 수만큼 자막을 흘린다.
+  // voice(AudioBuffer)가 있으면 새 사설을 부르는 목소리를 들어가는 북 다음에 얹고, 자막은 목소리 길이에 맞춘다.
   // handlers: { step(e), syllable(e), lineStart(e), lineEnd(e), end(), stopped() }
-  async playChang({ lines, jangdan = 'jungmori' }, handlers = {}) {
+  async playChang({ lines, jangdan = 'jungmori', voice = null }, handlers = {}) {
     if (!this.ensure()) return null;
     const J = JANGDAN[jangdan];
     const drum = this.cues.drums[jangdan];
@@ -197,15 +204,21 @@ export class SoriAudio {
     const t0 = ctx.currentTime + 0.12;
     const lineDur = J.stepsPerLine * stepDur;
     const singStart = t0 + (introSteps - skip) * stepDur;
-    const totalSteps = introSteps + J.stepsPerLine * lines.length;
+    // 목소리가 있으면 그 길이를 덮을 만큼 장단을 돈다(줄 단위로 맞춤)
+    const singSteps = voice
+      ? Math.ceil((voice.duration + 0.5) / lineDur) * J.stepsPerLine
+      : J.stepsPerLine * lines.length;
+    const totalSteps = introSteps + singSteps;
     const endT = t0 + (totalSteps - skip) * stepDur;
     const events = [];
 
+    const drumGain = voice ? 0.6 : 1;
     if (buffer) {
-      this.play(buffer, t0, bus, 1, skip * stepDur);
-      for (let t = t0 + (stepsPerClip - skip) * stepDur; t < endT - 0.01; t += clipDur) this.play(buffer, t, bus);
+      this.play(buffer, t0, bus, drumGain, skip * stepDur);
+      for (let t = t0 + (stepsPerClip - skip) * stepDur; t < endT - 0.01; t += clipDur) this.play(buffer, t, bus, drumGain);
       this.drum('D', endT, bus, 0.9); // 맺는 북
     }
+    if (voice) this.play(voice, singStart, bus, 1.15);
     for (let s = skip; s < totalSteps; s++) {
       const stroke = J.pattern[s % J.pattern.length];
       const t = t0 + (s - skip) * stepDur;
@@ -216,15 +229,21 @@ export class SoriAudio {
     events.push({ type: 'step', time: endT, step: 0, stroke: 'D', final: true });
 
     const windows = [];
+    // 줄마다 시작·길이: 목소리가 있으면 글자 수 비율로 목소리 길이를 나누고, 없으면 장단 단위로
+    const counts = lines.map((l) => [...l.replace(/\s+/g, '')].length);
+    const weight = counts.reduce((a, c) => a + c + 1.5, 0);
+    let cursor = singStart;
     lines.forEach((line, li) => {
-      const chars = [...line.replace(/\s+/g, '')];
-      const ls = singStart + li * lineDur;
+      const n = counts[li];
+      const len = voice ? (voice.duration * 0.97 * (n + 1.5)) / weight : lineDur;
+      const ls = cursor;
+      cursor += len;
       events.push({ type: 'lineStart', time: ls, line: li });
-      const n = chars.length || 1;
-      const span = lineDur * 0.72;
-      chars.forEach((_, k) => events.push({ type: 'syllable', time: ls + (k / Math.max(1, n - 1)) * span, line: li, index: k }));
-      windows.push([ls + lineDur * 0.78, ls + lineDur + 0.35]);
-      events.push({ type: 'lineEnd', time: ls + lineDur * 0.78, line: li });
+      const span = len * (voice ? 0.85 : 0.72);
+      for (let k = 0; k < n; k++) events.push({ type: 'syllable', time: ls + (k / Math.max(1, n - 1)) * span, line: li, index: k });
+      const end = voice ? ls + len : ls + lineDur * 0.78;
+      windows.push(voice ? [end - 0.4, end + 0.7] : [end, ls + lineDur + 0.35]);
+      events.push({ type: 'lineEnd', time: end, line: li });
     });
 
     this.runEvents(events, handlers, endT + 0.8);

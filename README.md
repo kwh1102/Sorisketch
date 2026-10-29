@@ -33,8 +33,10 @@ npm start
 |---|---|---|
 | `AI_PROVIDER` | (자동) | `openai` 또는 `anthropic`. 비우면 있는 키로 고름(둘 다 있으면 OpenAI) |
 | `OPENAI_API_KEY` | (없음) | OpenAI API 키 |
-| `OPENAI_MODEL` | `gpt-5.5` | OpenAI 장면 생성 모델 |
+| `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI 장면 생성 모델. 더 자연스러운 문장이 필요하면 `gpt-5.5`(느리고 비쌈) |
 | `OPENAI_REASONING_EFFORT` | `low` | 추론 노력 수준. 추론 모델이 아니면 비워 둘 것 |
+| `OPENAI_VOICE_MODEL` | `gpt-4o-mini-tts` | 새 사설을 부르는 목소리 모델 |
+| `SORISKETCH_VOICE` | `0` | `1`이면 새 사설을 AI 목소리로 읽어 줌(실험용, 노래가 아니라 낭독에 가까움) |
 | `ANTHROPIC_API_KEY` | (없음) | Claude API 키 |
 | `CLAUDE_MODEL` | `claude-opus-5-5` | Claude 장면 생성 모델 |
 | `CLAUDE_EFFORT` | `low` | 생성 노력 수준. 대기 시간을 줄이려 기본 `low` |
@@ -68,7 +70,7 @@ docs/ASSETS.md         자산 목록(넣은 음원, 남은 임시 자료)
 
 ## 꼭 알아 둘 점
 
-- 새 이야기의 **창** 장면에서는 그 장면의 장단과 같은 장단의 **실제 판소리 녹음**(같은 작품의 녹음을 먼저 고름)을 들려줍니다. 녹음의 가사는 원작 사설이고, 화면의 새 사설은 창작이라는 점을 함께 표시합니다. 「새 사설을 북 장단에 얹어 보기」를 누르면 실제 소리북 장단 위로 새 사설 자막이 장단에 맞춰 흐릅니다.
+- 새 이야기의 **창** 장면에서는 그 장면의 장단과 같은 장단의 **실제 판소리 녹음**(같은 작품의 녹음을 먼저 고름)을 들려주고, 새 사설은 자막으로 보여 줍니다. 「새 사설을 북 장단에 얹어 보기」로 실제 소리북 장단 위에 새 사설 자막을 흘려 볼 수 있습니다. (AI 목소리로 새 사설 읽기는 실험용으로 꺼 둠: `SORISKETCH_VOICE=1`)
 - 합성음은 음원을 불러오지 못할 때 쓰는 예비 북소리뿐입니다.
 - 모든 녹음과 소리북 장단은 국립국악원 「국악 디지털 음원」(https://www.gugak.go.kr/digitaleum/, 공공누리 제1유형·출처표시)에서 받은 악구를 이어 붙인 앞부분 발췌입니다. 다시 만들려면 `npm run audio`(설정: `scripts/audio-manifest.json`). 적벽화전·군사설움타령은 공개 음원을 찾지 못했습니다.
 - `public/js/data/gugak.js`의 장단·대목 설명에는 `verify: true` 표시가 있습니다. 발표 전에 국립국악원 국악사전 등 원전으로 다시 확인하세요.
