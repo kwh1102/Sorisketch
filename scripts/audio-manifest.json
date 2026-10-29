@@ -1,0 +1,127 @@
+{
+  "_note": "국립국악원 국악 디지털 음원(악구) — 공공누리 제1유형(출처표시). prefix의 악구를 앞에서부터 count개 이어 붙인다. drumLoops: 끊김 없이 반복할 소리북 장단 한 바퀴(WAV).",
+  "passages": {
+    "beomnaeryeoonda": {
+      "prefix": "V4-008",
+      "count": 6
+    },
+    "gogocheonbyeon": {
+      "prefix": "V4-013",
+      "count": 6
+    },
+    "tokkihwasang": {
+      "prefix": "V3-022",
+      "count": 6
+    },
+    "sarangga": {
+      "prefix": "V3-035",
+      "count": 6
+    },
+    "ssukdaemeori": {
+      "prefix": "V4-025",
+      "count": 6
+    },
+    "eosachuldu": {
+      "prefix": "V4-034",
+      "count": 6
+    },
+    "beompijungnyu": {
+      "prefix": "V4-036",
+      "count": 6
+    },
+    "jungnaeryeoonda": {
+      "prefix": "V4-044",
+      "count": 6
+    },
+    "jebinojeonggi": {
+      "prefix": "V4-006",
+      "count": 6
+    },
+    "baktaryeong": {
+      "prefix": "V3-027",
+      "count": 6
+    },
+    "hwaryongdo": {
+      "prefix": "V3-010",
+      "count": 6
+    }
+  },
+  "sori": {
+    "sori-sugung-jinyang": {
+      "prefix": "V3-020",
+      "count": 5
+    },
+    "sori-chunhyang-jinyang": {
+      "prefix": "V3-036",
+      "count": 5
+    },
+    "sori-jeokbyeok-jinyang": {
+      "prefix": "V3-001",
+      "count": 5
+    },
+    "sori-heungbo-jinyang": {
+      "prefix": "V4-053",
+      "count": 5
+    },
+    "sori-jeokbyeok-jungmori": {
+      "prefix": "V3-002",
+      "count": 6
+    },
+    "sori-sugung-jungmori": {
+      "prefix": "V4-012",
+      "count": 6
+    },
+    "sori-simcheong-jungmori": {
+      "prefix": "V4-040",
+      "count": 6
+    },
+    "sori-simcheong-jungjungmori": {
+      "prefix": "V4-041",
+      "count": 6
+    },
+    "sori-jeokbyeok-jungjungmori": {
+      "prefix": "V3-007",
+      "count": 6
+    },
+    "sori-sugung-jajinmori": {
+      "prefix": "V4-014",
+      "count": 6
+    },
+    "sori-simcheong-jajinmori": {
+      "prefix": "V4-042",
+      "count": 6
+    },
+    "sori-heungbo-jajinmori": {
+      "prefix": "V3-029",
+      "count": 6
+    },
+    "sori-chunhyang-hwimori": {
+      "prefix": "V4-028",
+      "count": 6
+    },
+    "sori-heungbo-hwimori": {
+      "prefix": "V3-031",
+      "count": 4
+    },
+    "sori-heungbo-eotmori": {
+      "prefix": "V3-030",
+      "count": 6
+    },
+    "sori-jeokbyeok-eotmori": {
+      "prefix": "V3-012",
+      "count": 6
+    },
+    "sori-chunhyang-eotmori": {
+      "prefix": "V3-034",
+      "count": 6
+    }
+  },
+  "drumLoops": {
+    "jinyang": "m8-001-a01",
+    "jungmori": "m8-001-c01",
+    "jungjungmori": "m8-001-e01",
+    "jajinmori": "m8-001-f01",
+    "hwimori": "m8-001-g01",
+    "eotmori": "m8-001-h01"
+  }
+}

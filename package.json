@@ -1,0 +1,23 @@
+{
+  "name": "sorisketch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sorisketch — AI와 함께 그림으로 펼치는 인터랙티브 판소리",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "audio": "node scripts/build-audio.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "openai": "^7.45.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@breezystack/lamejs": "^1.2.7"
+  }
+}

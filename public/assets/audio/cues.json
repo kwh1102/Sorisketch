@@ -1,0 +1,304 @@
+{
+ "tracks": {
+  "beomnaeryeoonda.mp3": {
+   "duration": 33.543,
+   "phrases": [
+    3.372,
+    6.577,
+    9.955,
+    15.726,
+    23.486
+   ]
+  },
+  "gogocheonbyeon.mp3": {
+   "duration": 67.393,
+   "phrases": [
+    17.47,
+    29.578,
+    36.901,
+    48.599,
+    56.018
+   ]
+  },
+  "tokkihwasang.mp3": {
+   "duration": 56.761,
+   "phrases": [
+    8.661,
+    16.398,
+    23.974,
+    36.006,
+    47.618
+   ]
+  },
+  "sarangga.mp3": {
+   "duration": 50.563,
+   "phrases": [
+    7.905,
+    15.888,
+    23.488,
+    34.533,
+    42.812
+   ]
+  },
+  "ssukdaemeori.mp3": {
+   "duration": 54.849,
+   "phrases": [
+    19.064,
+    28.614,
+    32.269,
+    36.996,
+    45.426
+   ]
+  },
+  "eosachuldu.mp3": {
+   "duration": 72.937,
+   "phrases": [
+    13.141,
+    17.818,
+    23.667,
+    50.458,
+    64.74
+   ]
+  },
+  "beompijungnyu.mp3": {
+   "duration": 107.131,
+   "phrases": [
+    22.685,
+    46.173,
+    69.619,
+    91.384,
+    98.853
+   ]
+  },
+  "jungnaeryeoonda.mp3": {
+   "duration": 38.153,
+   "phrases": [
+    5.838,
+    11.25,
+    16.304,
+    21.737,
+    29.964
+   ]
+  },
+  "jebinojeonggi.mp3": {
+   "duration": 37.634,
+   "phrases": [
+    3.492,
+    17.482,
+    24.505,
+    32.141,
+    34.995
+   ]
+  },
+  "baktaryeong.mp3": {
+   "duration": 37.815,
+   "phrases": [
+    7.428,
+    12.569,
+    19.536,
+    24.168,
+    31.031
+   ]
+  },
+  "hwaryongdo.mp3": {
+   "duration": 40.906,
+   "phrases": [
+    3.344,
+    10.847,
+    12.697,
+    17.735,
+    24.862
+   ]
+  },
+  "sori-sugung-jinyang.mp3": {
+   "duration": 53.499,
+   "phrases": [
+    6.064,
+    33.585,
+    40.265,
+    46.943
+   ]
+  },
+  "sori-chunhyang-jinyang.mp3": {
+   "duration": 42.744,
+   "phrases": [
+    7.672,
+    16.68,
+    33.207,
+    38.446
+   ]
+  },
+  "sori-jeokbyeok-jinyang.mp3": {
+   "duration": 45.643,
+   "phrases": [
+    5.888,
+    11.511,
+    18.082,
+    41.506
+   ]
+  },
+  "sori-heungbo-jinyang.mp3": {
+   "duration": 38.127,
+   "phrases": [
+    5.57,
+    10.789,
+    25.986,
+    31.225
+   ]
+  },
+  "sori-jeokbyeok-jungmori.mp3": {
+   "duration": 44.018,
+   "phrases": [
+    7.747,
+    16.574,
+    25.13,
+    32.896,
+    36.948
+   ]
+  },
+  "sori-sugung-jungmori.mp3": {
+   "duration": 53.516,
+   "phrases": [
+    4.709,
+    8.859,
+    23.114,
+    27.27,
+    40.744
+   ]
+  },
+  "sori-simcheong-jungmori.mp3": {
+   "duration": 69.403,
+   "phrases": [
+    9.131,
+    18.958,
+    30.791,
+    52.351,
+    60.37
+   ]
+  },
+  "sori-simcheong-jungjungmori.mp3": {
+   "duration": 44.355,
+   "phrases": [
+    8.452,
+    12.472,
+    20.702,
+    28.431,
+    36.636
+   ]
+  },
+  "sori-jeokbyeok-jungjungmori.mp3": {
+   "duration": 49.83,
+   "phrases": [
+    6.598,
+    19.836,
+    25.439,
+    31.268,
+    37.234
+   ]
+  },
+  "sori-sugung-jajinmori.mp3": {
+   "duration": 46.202,
+   "phrases": [
+    2.86,
+    12.472,
+    22.715,
+    28.095,
+    32.127
+   ]
+  },
+  "sori-simcheong-jajinmori.mp3": {
+   "duration": 66.085,
+   "phrases": [
+    10.558,
+    14.353,
+    18.177,
+    35.89,
+    46.264
+   ]
+  },
+  "sori-heungbo-jajinmori.mp3": {
+   "duration": 64.399,
+   "phrases": [
+    13.757,
+    22.804,
+    31.17,
+    42.672,
+    50.584
+   ]
+  },
+  "sori-chunhyang-hwimori.mp3": {
+   "duration": 31.901,
+   "phrases": [
+    4.712,
+    9.425,
+    14.244,
+    20.769,
+    27.492
+   ]
+  },
+  "sori-heungbo-hwimori.mp3": {
+   "duration": 31.83,
+   "phrases": [
+    4.064,
+    13.16,
+    18.819
+   ]
+  },
+  "sori-heungbo-eotmori.mp3": {
+   "duration": 43.499,
+   "phrases": [
+    11.318,
+    16.693,
+    26.135,
+    33.499,
+    38.439
+   ]
+  },
+  "sori-jeokbyeok-eotmori.mp3": {
+   "duration": 34.881,
+   "phrases": [
+    8.296,
+    12.466,
+    16.884,
+    21.041,
+    25.38
+   ]
+  },
+  "sori-chunhyang-eotmori.mp3": {
+   "duration": 41.79,
+   "phrases": [
+    9.761,
+    24.05,
+    28.581,
+    33.645,
+    37.722
+   ]
+  }
+ },
+ "drums": {
+  "jinyang": {
+   "file": "drum-jinyang.wav",
+   "cycle": 12.7059
+  },
+  "jungmori": {
+   "file": "drum-jungmori.wav",
+   "cycle": 12
+  },
+  "jungjungmori": {
+   "file": "drum-jungjungmori.wav",
+   "cycle": 6
+  },
+  "jajinmori": {
+   "file": "drum-jajinmori.wav",
+   "cycle": 3
+  },
+  "hwimori": {
+   "file": "drum-hwimori.wav",
+   "cycle": 2.1428
+  },
+  "eotmori": {
+   "file": "drum-eotmori.wav",
+   "cycle": 3.9735
+  }
+ }
+}
